@@ -129,7 +129,7 @@ const ChatPage = () => {
   }, []);
 
  useEffect(() => {
-  if (isMobile && sidebarOpen) {
+  if (isMobile) {
     setSidebarOpen(false);
   }
 }, [chatId, isMobile]);
