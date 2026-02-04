@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import  { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Trash2, Search, Edit2, MessageSquare, Clock,LogOut, ChevronDown, ChevronUp, CheckCircle, XCircle, Server, Save, XSquare } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -233,8 +233,8 @@ const ChatHistory = ({
 
   const getAvatarColor = (name) => {
     const colors = [
-      'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500',
-      'bg-indigo-500', 'bg-teal-500', 'bg-orange-500', 'bg-cyan-500', 'bg-rose-500'
+      'bg-blue-600', 'bg-green-600', 'bg-purple-600', 'bg-pink-600',
+      'bg-indigo-600', 'bg-teal-600', 'bg-orange-600', 'bg-cyan-600', 'bg-rose-600'
     ];
     if (!name) return colors[0];
     const hash = name.split('').reduce((acc, char) => {
@@ -245,8 +245,8 @@ const ChatHistory = ({
 
   const getHealthStatus = () => {
     if (!backendHealth) return {
-      color: 'text-gray-500',
-      bgColor: 'bg-gray-100',
+      color: 'text-gray-400',
+      bgColor: 'bg-gray-800',
       icon: <Server className="w-4 h-4" />,
       text: 'Checking...'
     };
@@ -254,29 +254,29 @@ const ChatHistory = ({
     switch (backendHealth.status) {
       case 'healthy':
         return {
-          color: 'text-green-600',
-          bgColor: 'bg-green-50',
+          color: 'text-green-400',
+          bgColor: 'bg-green-900/30',
           icon: <CheckCircle className="w-4 h-4" />,
           text: 'Backend OK'
         };
       case 'unhealthy':
         return {
-          color: 'text-yellow-600',
-          bgColor: 'bg-yellow-50',
+          color: 'text-yellow-400',
+          bgColor: 'bg-yellow-900/30',
           icon: <XCircle className="w-4 h-4" />,
           text: 'Backend Warning'
         };
       case 'error':
         return {
-          color: 'text-red-600',
-          bgColor: 'bg-red-50',
+          color: 'text-red-400',
+          bgColor: 'bg-red-900/30',
           icon: <XCircle className="w-4 h-4" />,
           text: 'Backend Error'
         };
       default:
         return {
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-100',
+          color: 'text-gray-400',
+          bgColor: 'bg-gray-800',
           icon: <Server className="w-4 h-4" />,
           text: 'Checking...'
         };
@@ -285,11 +285,11 @@ const ChatHistory = ({
 
   if (isLoading) {
     return (
-      <div className="h-full bg-white border-r border-gray-200 flex flex-col">
+      <div className="h-full bg-gray-800 border-r border-gray-700 flex flex-col">
         <div className="p-4 space-y-3">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="animate-pulse">
-              <div className="h-16 bg-gray-200 rounded-lg"></div>
+              <div className="h-16 bg-gray-700 rounded-lg"></div>
             </div>
           ))}
         </div>
@@ -299,14 +299,14 @@ const ChatHistory = ({
 
   if (error) {
     return (
-      <div className="h-full bg-white border-r border-gray-200 flex flex-col items-center justify-center p-6">
+      <div className="h-full bg-gray-800 border-r border-gray-700 flex flex-col items-center justify-center p-6">
         <div className="text-center">
-          <div className="text-red-500 mb-2">⚠️</div>
-          <h3 className="font-semibold text-gray-900 mb-1">Failed to load chats</h3>
-          <p className="text-sm text-gray-600 mb-4">{error.message || 'Please try again later'}</p>
+          <div className="text-red-400 mb-2">⚠️</div>
+          <h3 className="font-semibold text-gray-200 mb-1">Failed to load chats</h3>
+          <p className="text-sm text-gray-400 mb-4">{error.message || 'Please try again later'}</p>
           <button
             onClick={() => queryClient.invalidateQueries({ queryKey: ['chats'] })}
-            className="text-sm bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors border border-blue-500/30"
           >
             Retry
           </button>
@@ -316,23 +316,23 @@ const ChatHistory = ({
   }
 
   return (
-    <div className="h-full bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+    <div className="h-full bg-gray-800 border-r border-gray-700 flex flex-col overflow-hidden">
       {/* Search Bar */}
       {chats.length > 0 && (
-        <div className="p-4 border-b border-gray-200 flex-shrink-0">
+        <div className="p-4 border-b border-gray-700 flex-shrink-0">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
             <input
               type="text"
               placeholder="Search chats..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-900 text-gray-200 placeholder-gray-500"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 p-1"
               >
                 ×
               </button>
@@ -347,31 +347,31 @@ const ChatHistory = ({
           <div className="flex flex-col items-center justify-center h-full p-6 text-center">
             {searchTerm ? (
               <>
-                <MessageSquare className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-gray-600 font-medium mb-1">No matching chats found</p>
+                <MessageSquare className="w-12 h-12 text-gray-600 mb-3" />
+                <p className="text-gray-400 font-medium mb-1">No matching chats found</p>
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="text-blue-500 text-sm hover:text-blue-600"
+                  className="text-blue-400 text-sm hover:text-blue-300"
                 >
                   Clear search
                 </button>
               </>
             ) : chats.length === 0 ? (
               <>
-                <MessageSquare className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-gray-600 font-medium mb-1">No chats yet</p>
-                <p className="text-gray-400 text-sm">Start your first conversation by clicking "New Chat"</p>
+                <MessageSquare className="w-12 h-12 text-gray-600 mb-3" />
+                <p className="text-gray-400 font-medium mb-1">No chats yet</p>
+                <p className="text-gray-500 text-sm">Start your first conversation by clicking "New Chat"</p>
               </>
             ) : (
               <>
-                <MessageSquare className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-gray-600 font-medium mb-1">Chats will appear here</p>
-                <p className="text-gray-400 text-sm">Select one to continue</p>
+                <MessageSquare className="w-12 h-12 text-gray-600 mb-3" />
+                <p className="text-gray-400 font-medium mb-1">Chats will appear here</p>
+                <p className="text-gray-500 text-sm">Select one to continue</p>
               </>
             )}
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-700">
             {filteredChats.map((chat) => (
               <div
                 key={chat._id}
@@ -380,18 +380,18 @@ const ChatHistory = ({
                     onSelectChat(chat._id);
                   }
                 }}
-                className={`p-4 hover:bg-gray-50 cursor-pointer transition-all duration-200 group ${
+                className={`p-4 hover:bg-gray-700 cursor-pointer transition-all duration-200 group ${
                   currentChatId === chat._id
-                    ? 'bg-blue-50 border-l-4 border-blue-500'
+                    ? 'bg-blue-900/30 border-l-4 border-blue-500'
                     : 'border-l-4 border-transparent'
                 } ${deleteChatMutation.isLoading && deleteChatMutation.variables === chat._id ? 'opacity-50' : ''}`}
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 mt-1">
                     {currentChatId === chat._id ? (
-                      <MessageSquare className="w-5 h-5 text-blue-500" />
+                      <MessageSquare className="w-5 h-5 text-blue-400" />
                     ) : (
-                      <MessageSquare className="w-5 h-5 text-gray-400" />
+                      <MessageSquare className="w-5 h-5 text-gray-500" />
                     )}
                   </div>
 
@@ -408,7 +408,7 @@ const ChatHistory = ({
                             if (e.key === 'Escape') handleTitleCancel(e);
                           }}
                           autoFocus
-                          className="w-full px-3 py-2 text-sm border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                          className="w-full px-3 py-2 text-sm border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-900 text-gray-200"
                           onClick={(e) => e.stopPropagation()}
                         />
                         
@@ -417,14 +417,14 @@ const ChatHistory = ({
                           <button
                             onClick={(e) => handleTitleSave(chat._id, e)}
                             disabled={updateTitleMutation.isLoading}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Save className="w-4 h-4" />
                             <span className="text-sm font-medium">Save</span>
                           </button>
                           <button
                             onClick={handleTitleCancel}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors"
                           >
                             <XSquare className="w-4 h-4" />
                             <span className="text-sm font-medium">Cancel</span>
@@ -435,13 +435,13 @@ const ChatHistory = ({
                       <div className="space-y-1">
                         {/* Chat title and action buttons */}
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-medium text-gray-900 text-sm truncate flex-1">
+                          <h3 className="font-medium text-gray-200 text-sm truncate flex-1">
                             {chat.title || 'Untitled Chat'}
                           </h3>
                           <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={(e) => handleTitleEdit(chat, e)}
-                              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                              className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-gray-700 rounded"
                               title="Edit title"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -449,7 +449,7 @@ const ChatHistory = ({
                             <button
                               onClick={(e) => handleDeleteChat(chat._id, e)}
                               disabled={deleteChatMutation.isLoading}
-                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+                              className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-700 rounded"
                               title="Delete chat"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -480,7 +480,7 @@ const ChatHistory = ({
 
       {/* Stats */}
       {chats.length > 0 && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-600 flex-shrink-0">
+        <div className="px-4 py-3 bg-gray-900 border-t border-gray-700 text-xs text-gray-400 flex-shrink-0">
           <div className="flex justify-between">
             <span>{chats.length} chat{chats.length !== 1 ? 's' : ''}</span>
             <span>{chats.reduce((sum, chat) => sum + (chat.messagesCount || 0), 0)} total messages</span>
@@ -489,17 +489,17 @@ const ChatHistory = ({
       )}
 
       {/* User Info Section */}
-      <div className="border-t border-gray-200 bg-white flex-shrink-0">
+      <div className="border-t border-gray-700 bg-gray-800 flex-shrink-0">
         <button
           onClick={() => setShowUserDetails(!showUserDetails)}
-          className="w-full p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+          className="w-full p-4 flex items-center gap-3 hover:bg-gray-700 transition-colors"
         >
           <div className={`w-10 h-10 rounded-full ${getAvatarColor(userInfo.username)} flex items-center justify-center text-white font-semibold text-sm flex-shrink-0`}>
             {getUserInitials(userInfo.username)}
           </div>
           <div className="flex-1 text-left min-w-0">
-            <p className="font-medium text-gray-900 text-sm truncate">{userInfo.username}</p>
-            <p className="text-xs text-gray-500 truncate">{userInfo.email}</p>
+            <p className="font-medium text-gray-200 text-sm truncate">{userInfo.username}</p>
+            <p className="text-xs text-gray-400 truncate">{userInfo.email}</p>
           </div>
           <div className="flex-shrink-0">
             {showUserDetails ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
@@ -507,9 +507,9 @@ const ChatHistory = ({
         </button>
 
         {showUserDetails && (
-          <div className="border-t border-gray-200 p-4 space-y-3 bg-gray-50">
+          <div className="border-t border-gray-700 p-4 space-y-3 bg-gray-900">
             {/* Backend Health */}
-            <div className={`p-3 rounded-lg ${getHealthStatus().bgColor}`}>
+            <div className={`p-3 rounded-lg ${getHealthStatus().bgColor} border border-gray-700`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <div className={getHealthStatus().color}>
@@ -527,9 +527,9 @@ const ChatHistory = ({
             </div>
 
             {/* Role Badge */}
-            <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-              <span className="text-sm text-gray-600">Role</span>
-              <span className="text-sm font-medium text-gray-900 bg-purple-100 text-purple-700 px-2 py-1 rounded">
+            <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-700">
+              <span className="text-sm text-gray-400">Role</span>
+              <span className="text-sm font-medium text-purple-300 bg-purple-900/30 px-2 py-1 rounded">
                 {userInfo.role}
               </span>
             </div>
@@ -537,7 +537,7 @@ const ChatHistory = ({
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors text-sm font-medium border border-red-500/30"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -549,7 +549,7 @@ const ChatHistory = ({
           <div className="px-4 pb-4">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors text-sm font-medium border border-red-500/30"
             >
               <LogOut className="w-4 h-4" />
               Logout
