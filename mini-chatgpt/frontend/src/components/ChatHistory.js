@@ -1,11 +1,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Trash2, Search, Edit2, MessageSquare, Clock, Mail, Shield, LogOut, ChevronDown, ChevronUp, CheckCircle, XCircle, Server, Check, X } from 'lucide-react';
+import { Trash2, Search, Edit2, MessageSquare, Clock, Mail, Shield, LogOut, ChevronDown, ChevronUp, CheckCircle, XCircle, Server, Check, X, Save, XSquare } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "https://mini-chatgpt-assignment.onrender.com/api";
 
-const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error, onCloseSidebar }) => {
+const ChatHistory = ({ 
+  chats = [], 
+  currentChatId, 
+  onSelectChat, 
+  onTitleEditStatus, // NEW prop to notify parent
+  isLoading, 
+  error 
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
@@ -21,6 +28,13 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
 
   const queryClient = useQueryClient();
+
+  // Notify parent when editing starts/stops
+  useEffect(() => {
+    if (onTitleEditStatus) {
+      onTitleEditStatus(!!editingChatId);
+    }
+  }, [editingChatId, onTitleEditStatus]);
 
   // Fetch user info on component mount
   useEffect(() => {
@@ -177,12 +191,14 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
 
   const handleTitleEdit = (chat, e) => {
     e.stopPropagation();
+    e.preventDefault();
     setEditingChatId(chat._id);
     setEditingTitle(chat.title || 'Untitled Chat');
   };
 
   const handleTitleSave = (chatId, e) => {
     e.stopPropagation();
+    e.preventDefault();
     if (editingTitle.trim() && chatId) {
       updateTitleMutation.mutate({ chatId, title: editingTitle.trim() });
     } else {
@@ -192,12 +208,14 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
 
   const handleTitleCancel = (e) => {
     e.stopPropagation();
+    e.preventDefault();
     setEditingChatId(null);
     setEditingTitle('');
   };
 
   const handleDeleteChat = async (chatId, e) => {
     e.stopPropagation();
+    e.preventDefault();
     if (window.confirm('Are you sure you want to delete this chat? This action cannot be undone.')) {
       deleteChatMutation.mutate(chatId);
     }
@@ -379,7 +397,8 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
 
                   <div className="flex-1 min-w-0">
                     {editingChatId === chat._id ? (
-                      <div className="flex items-center gap-2 mb-2" onClick={(e) => e.stopPropagation()}>
+                      <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                        {/* Edit input field */}
                         <input
                           type="text"
                           value={editingTitle}
@@ -389,59 +408,68 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
                             if (e.key === 'Escape') handleTitleCancel(e);
                           }}
                           autoFocus
-                          className="flex-1 px-2 py-1 text-sm border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                          className="w-full px-3 py-2 text-sm border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                          onClick={(e) => e.stopPropagation()}
                         />
-                        <button
-                          onClick={(e) => handleTitleSave(chat._id, e)}
-                          className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded flex-shrink-0"
-                          disabled={updateTitleMutation.isLoading}
-                          title="Save"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={handleTitleCancel}
-                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded flex-shrink-0"
-                          title="Cancel"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className="font-medium text-gray-900 text-sm truncate flex-1">
-                          {chat.title || 'Untitled Chat'}
-                        </h3>
-                        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        
+                        {/* Action buttons - styled as square boxes */}
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={(e) => handleTitleEdit(chat, e)}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                            title="Edit title"
+                            onClick={(e) => handleTitleSave(chat._id, e)}
+                            disabled={updateTitleMutation.isLoading}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Save className="w-4 h-4" />
+                            <span className="text-sm font-medium">Save</span>
                           </button>
                           <button
-                            onClick={(e) => handleDeleteChat(chat._id, e)}
-                            disabled={deleteChatMutation.isLoading}
-                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
-                            title="Delete chat"
+                            onClick={handleTitleCancel}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <XSquare className="w-4 h-4" />
+                            <span className="text-sm font-medium">Cancel</span>
                           </button>
                         </div>
                       </div>
-                    )}
+                    ) : (
+                      <div className="space-y-1">
+                        {/* Chat title and action buttons */}
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-medium text-gray-900 text-sm truncate flex-1">
+                            {chat.title || 'Untitled Chat'}
+                          </h3>
+                          <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => handleTitleEdit(chat, e)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                              title="Edit title"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteChat(chat._id, e)}
+                              disabled={deleteChatMutation.isLoading}
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+                              title="Delete chat"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
 
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatChatDate(chat.updatedAt || chat.createdAt)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="w-3 h-3" />
-                        {chat.messagesCount || 0} messages
-                      </span>
-                    </div>
+                        {/* Chat metadata */}
+                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatChatDate(chat.updatedAt || chat.createdAt)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3" />
+                            {chat.messagesCount || 0} messages
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

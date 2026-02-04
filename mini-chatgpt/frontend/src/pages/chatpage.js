@@ -9,7 +9,7 @@ import LoadingIndicator from "../components/LoadingIndicator";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "https://mini-chatgpt-assignment.onrender.com/api";
 
-// API functions using fetch
+// API functions
 const fetchChats = async () => {
   const response = await fetch(`${API_BASE_URL}/chats`);
   if (!response.ok) {
@@ -44,25 +44,6 @@ const createNewChat = async () => {
   return response.json();
 };
 
-const sendNewMessage = async ({ chatId, content }) => {
-  if (!chatId || !content) {
-    throw new Error("Chat ID and content are required");
-  }
-  const response = await fetch(`${API_BASE_URL}/chats/${chatId}/messages`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ content }),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to send message");
-  }
-  return response.json();
-};
-
-// Regenerate last message API
 const regenerateLastMessage = async (chatId) => {
   if (!chatId) throw new Error("Chat ID is required");
   const response = await fetch(`${API_BASE_URL}/chats/${chatId}/regenerate`, {
@@ -78,7 +59,6 @@ const regenerateLastMessage = async (chatId) => {
   return response.json();
 };
 
-// Edit message AND regenerate API
 const editAndRegenerateMessage = async ({ chatId, messageId, content }) => {
   if (!chatId || !messageId || !content) {
     throw new Error("Chat ID, message ID and content are required");
@@ -108,12 +88,14 @@ const ChatPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
 
-  // Check if mobile on mount and resize
+  // Responsive sidebar handling
   useEffect(() => {
     const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
         setSidebarOpen(true);
       } else {
         setSidebarOpen(false);
@@ -128,14 +110,20 @@ const ChatPage = () => {
     };
   }, []);
 
- useEffect(() => {
-  if (isMobile) {
-    setSidebarOpen(false);
-  }
-}, [chatId, isMobile]);
+  useEffect(() => {
+    if (isMobile && !isEditingTitle) {
+      setSidebarOpen(false);
+    }
+  }, [chatId, isMobile, isEditingTitle]);
 
+  const handleTitleEditStatus = (isEditing) => {
+    setIsEditingTitle(isEditing);
+    if (isEditing && isMobile && !sidebarOpen) {
+      setSidebarOpen(true);
+    }
+  };
 
-  // ✅ Fetch chats list
+  // Queries
   const {
     data: chats,
     isLoading: isLoadingChats,
@@ -147,7 +135,6 @@ const ChatPage = () => {
     refetchOnWindowFocus: false,
   });
 
-  // ✅ Fetch current chat
   const {
     data: currentChat,
     isLoading: isLoadingChat,
@@ -161,13 +148,13 @@ const ChatPage = () => {
     refetchOnWindowFocus: false,
   });
 
-  // ✅ Create chat mutation
+  // Mutations
   const createChatMutation = useMutation({
     mutationFn: createNewChat,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
       navigate(`/chat/${data._id}`);
-      if (isMobile) setSidebarOpen(false);
+      if (isMobile && !isEditingTitle) setSidebarOpen(false);
     },
     onError: (error) => {
       console.error("Failed to create chat:", error);
@@ -175,7 +162,6 @@ const ChatPage = () => {
     },
   });
 
-  // ✅ Regenerate mutation
   const regenerateMutation = useMutation({
     mutationFn: regenerateLastMessage,
     onSuccess: () => {
@@ -190,7 +176,6 @@ const ChatPage = () => {
     },
   });
 
-  // ✅ Edit AND regenerate mutation
   const editAndRegenerateMutation = useMutation({
     mutationFn: editAndRegenerateMessage,
     onSuccess: () => {
@@ -206,13 +191,17 @@ const ChatPage = () => {
   });
 
   const handleNewChat = () => {
-    createChatMutation.mutate();
+    if (!isEditingTitle) {
+      createChatMutation.mutate();
+    }
   };
 
   const handleSelectChat = (id) => {
-    navigate(`/chat/${id}`);
-    if (isMobile) {
-      setSidebarOpen(false);
+    if (!isEditingTitle) {
+      navigate(`/chat/${id}`);
+      if (isMobile) {
+        setSidebarOpen(false);
+      }
     }
   };
 
@@ -227,26 +216,22 @@ const ChatPage = () => {
     }
   };
 
-  // NEW FUNCTION: Handle first message from landing page
   const handleFirstMessage = async (content) => {
     if (!content.trim() || isCreatingNewChat) return;
     
     setIsCreatingNewChat(true);
     
     try {
-      // Step 1: Create a new chat (like clicking New Chat button)
       const newChat = await createNewChat();
-      
-      // Step 2: Send the message to the new chat
-      await sendNewMessage({
-        chatId: newChat._id,
-        content: content
+      await fetch(`${API_BASE_URL}/chats/${newChat._id}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content }),
       });
       
-      // Step 3: Navigate to the new chat
       navigate(`/chat/${newChat._id}`);
-      
-      // Step 4: Refresh the chats list
       queryClient.invalidateQueries({ queryKey: ["chats"] });
       
     } catch (error) {
@@ -257,7 +242,6 @@ const ChatPage = () => {
     }
   };
 
-  // Handle regenerate
   const handleRegenerate = () => {
     if (!chatId || !messages.length || isRegenerating) return;
     
@@ -268,7 +252,6 @@ const ChatPage = () => {
     }
   };
 
-  // Handle edit message
   const handleEditMessage = (messageId, currentContent) => {
     setEditingMessageId(messageId);
     setEditingContent(currentContent);
@@ -290,35 +273,37 @@ const ChatPage = () => {
   };
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+    if (!isEditingTitle) {
+      setSidebarOpen(!sidebarOpen);
+    }
   };
 
-  // The backend returns chat with messages included
   const messages = currentChat?.messages || [];
-  
-  // Check if we can show regenerate button
   const canRegenerate = chatId && 
                        messages.length > 0 && 
                        messages[messages.length - 1]?.role === 'assistant' &&
                        !isRegenerating;
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Hamburger Menu Button for Mobile */}
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Mobile Hamburger Button */}
       {isMobile && (
         <button
           onClick={toggleSidebar}
-          className="fixed top-2 left-4 z-50 p-2 bg-white rounded-lg shadow-md hover:bg-gray-100 transition-colors"
+          disabled={isEditingTitle}
+          className={`fixed top-3 left-3 z-50 p-2.5 bg-white rounded-lg shadow-md hover:bg-gray-100 transition-colors ${
+            isEditingTitle ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
           aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
         >
-          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       )}
 
-      {/* Overlay for mobile when sidebar is open */}
-      {isMobile && sidebarOpen && (
+      {/* Mobile Overlay */}
+      {isMobile && sidebarOpen && !isEditingTitle && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -326,24 +311,29 @@ const ChatPage = () => {
       {/* Sidebar */}
       <div
         className={`
-          ${isMobile ? 'fixed inset-y-0 left-0 z-40 w-64 transform' : 'relative w-64'}
+          ${isMobile ? 'fixed inset-y-0 left-0 z-40 w-72 transform' : 'relative w-64'}
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           transition-transform duration-300 ease-in-out
-          bg-white border-r border-gray-200 flex flex-col shadow-lg
+          bg-white border-r border-gray-200 flex flex-col shadow-xl
+          h-screen
         `}
       >
-        <div className="p-4">
-          <img 
-            src="/Mini-Chatgpt.jpg" 
-            alt="Chat History Header" 
-            className="w-full h-32 object-cover rounded-lg"
-          />
+        <div className="p-4 border-b">
+          <div className="flex justify-center">
+            <img 
+              src="/Mini-Chatgpt.jpg" 
+              alt="Chat History Header" 
+              className="w-48 h-28 object-cover rounded-lg"
+            />
+          </div>
         </div>
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b">
           <button
             onClick={handleNewChat}
-            disabled={createChatMutation.isPending}
-            className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+            disabled={createChatMutation.isPending || isEditingTitle}
+            className={`w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2 ${
+              createChatMutation.isPending || isEditingTitle ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             {createChatMutation.isPending ? (
               <>
@@ -358,22 +348,42 @@ const ChatPage = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-hidden">
           <ChatHistory
             chats={chats || []}
             currentChatId={chatId}
             onSelectChat={handleSelectChat}
+            onTitleEditStatus={handleTitleEditStatus}
             isLoading={isLoadingChats}
             error={chatsError}
           />
         </div>
       </div>
 
-      {/* Main Chat Area */}
-      <div className={`flex-1 flex flex-col ${isMobile ? '' : ''}`}>
-        
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col min-w-0 ${!sidebarOpen && !isMobile ? 'ml-0' : ''}`}>
+  {/* Fixed Navbar */}
+  <div className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 z-30 md:left-64">
+    <div className="h-full flex items-center justify-center px-4">
+      <div className="relative w-full max-w-4xl mx-auto">
+        <h1 className="text-lg font-semibold text-gray-800 text-center line-clamp-2 px-12 md:px-4 leading-tight">
+          {currentChat?.title || 'Mini ChatGPT'}
+        </h1>
+        {isMobile && (
+          <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+            <img 
+              src="/Mini-Chatgpt.jpg" 
+              alt="Mini-ChatGPT"
+              className="w-8 h-8 rounded-full object-cover border border-gray-200"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
 
-        <div className="flex-1 overflow-hidden relative">
+        {/* Messages Area */}
+        <div className="flex-1 overflow-hidden pt-14 pb-20">
           <MessageList
             messages={messages}
             isLoading={isLoadingChat}
@@ -390,26 +400,29 @@ const ChatPage = () => {
             onCancelEdit={handleCancelEdit}
             onContentChange={setEditingContent}
           />
+        </div>
 
-          {(isLoading || createChatMutation.isPending || isRegenerating || editAndRegenerateMutation.isPending) && (
-          <div className="fixed inset-x-0 bottom-4 flex justify-center sm:absolute sm:bottom-4 sm:left-1/2 sm:transform sm:-translate-x-1/2 z-10">
+        {/* Fixed Message Input */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 md:left-64">
+          <MessageInput
+            chatId={chatId}
+            onSend={handleMessageSend}
+            onFirstMessage={handleFirstMessage}
+            disabled={
+              chatId ? 
+              (isLoading || isRegenerating || editingMessageId || editAndRegenerateMutation.isPending) 
+              : false
+            }
+            isCreatingNewChat={isCreatingNewChat}
+          />
+        </div>
+
+        {/* Loading Indicator */}
+        {(isLoading || createChatMutation.isPending || isRegenerating || editAndRegenerateMutation.isPending) && (
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40">
             <LoadingIndicator />
           </div>
         )}
-        </div>
-
-        {/* Modified MessageInput - Always enabled on landing page */}
-        <MessageInput
-          chatId={chatId}
-          onSend={handleMessageSend}
-          onFirstMessage={handleFirstMessage} // NEW prop for landing page
-          disabled={
-            chatId ? 
-            (isLoading || isRegenerating || editingMessageId || editAndRegenerateMutation.isPending) 
-            : false // Always enabled when no chat (landing page)
-          }
-          isCreatingNewChat={isCreatingNewChat}
-        />
       </div>
     </div>
   );
