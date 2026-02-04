@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Trash2, Search, Edit2, MessageSquare, Clock, Mail, Shield, LogOut, ChevronDown, ChevronUp, CheckCircle, XCircle, Server, Check, X, Save, XSquare } from 'lucide-react';
+import { Trash2, Search, Edit2, MessageSquare, Clock,LogOut, ChevronDown, ChevronUp, CheckCircle, XCircle, Server, Save, XSquare } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "https://mini-chatgpt-assignment.onrender.com/api";
