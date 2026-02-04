@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Menu, X } from "lucide-react"; // Import hamburger icons
+import { Menu, X } from "lucide-react";
 import ChatHistory from "../components/ChatHistory";
 import MessageList from "../components/MessageList";
 import MessageInput from "../components/MessageInput";
@@ -107,6 +107,7 @@ const ChatPage = () => {
   const [editingContent, setEditingContent] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
 
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -223,6 +224,36 @@ const ChatPage = () => {
       console.error("Error refetching chat:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // NEW FUNCTION: Handle first message from landing page
+  const handleFirstMessage = async (content) => {
+    if (!content.trim() || isCreatingNewChat) return;
+    
+    setIsCreatingNewChat(true);
+    
+    try {
+      // Step 1: Create a new chat (like clicking New Chat button)
+      const newChat = await createNewChat();
+      
+      // Step 2: Send the message to the new chat
+      await sendNewMessage({
+        chatId: newChat._id,
+        content: content
+      });
+      
+      // Step 3: Navigate to the new chat
+      navigate(`/chat/${newChat._id}`);
+      
+      // Step 4: Refresh the chats list
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+      
+    } catch (error) {
+      console.error("Failed to create chat and send message:", error);
+      alert("Failed to send message. Please try again.");
+    } finally {
+      setIsCreatingNewChat(false);
     }
   };
 
@@ -361,16 +392,23 @@ const ChatPage = () => {
           />
 
           {(isLoading || createChatMutation.isPending || isRegenerating || editAndRegenerateMutation.isPending) && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-              <LoadingIndicator />
-            </div>
-          )}
+          <div className="fixed inset-x-0 bottom-4 flex justify-center sm:absolute sm:bottom-4 sm:left-1/2 sm:transform sm:-translate-x-1/2 z-10">
+            <LoadingIndicator />
+          </div>
+        )}
         </div>
 
+        {/* Modified MessageInput - Always enabled on landing page */}
         <MessageInput
           chatId={chatId}
           onSend={handleMessageSend}
-          disabled={!chatId || isLoading || isRegenerating || editingMessageId || editAndRegenerateMutation.isPending}
+          onFirstMessage={handleFirstMessage} // NEW prop for landing page
+          disabled={
+            chatId ? 
+            (isLoading || isRegenerating || editingMessageId || editAndRegenerateMutation.isPending) 
+            : false // Always enabled when no chat (landing page)
+          }
+          isCreatingNewChat={isCreatingNewChat}
         />
       </div>
     </div>

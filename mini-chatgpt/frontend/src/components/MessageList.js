@@ -114,12 +114,14 @@ const MessageList = ({
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-gray-600">Loading messages...</p>
-        </div>
-      </div>
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
+  <div className="text-center">
+    <div className="flex flex-col items-center gap-4">
+      <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-500"></div>
+      <p className="text-sm sm:text-base text-gray-600">Loading messages...</p>
+    </div>
+  </div>
+</div>
     );
   }
   
@@ -181,10 +183,6 @@ const MessageList = ({
               </ul>
             </div>
           </div>
-          
-          <p className="mt-15 text-sm text-black-500 font-bold">
-            Start by creating a new chat from the sidebar or select an existing one
-          </p>
         </div>
       </div>
     );
@@ -228,7 +226,7 @@ const MessageList = ({
   }
   
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-w-0">
       {/* Copy Toast Notification - WhatsApp Style */}
       {showCopyToast && (
         <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in-up">
@@ -244,8 +242,8 @@ const MessageList = ({
           <div className="flex items-center">
             {/* Title container that centers content while leaving space for image */}
             <div className="flex-1 flex items-center justify-center relative">
-              <div className="text-center">
-                <h1 className="text-base md:text-lg font-semibold text-gray-800 truncate px-12 md:px-0">
+              <div className="text-center min-w-0">
+                <h1 className="text-base md:text-lg font-semibold text-gray-800 px-12 md:px-0 break-words line-clamp-2">
                   {currentChat.title || 'Untitled Chat'}
                 </h1>
               </div>
@@ -269,18 +267,18 @@ const MessageList = ({
         </div>
       )}
       
-      {/* Messages Container */}
+      {/* Messages Container - CRITICAL FIXES HERE */}
       <div 
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 bg-gradient-to-b from-white to-gray-50"
+        className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 bg-gradient-to-b from-white to-gray-50 min-w-0"
       >
         {messages.map((message, index) => (
           <div
             key={message._id || index}
-            className={`flex group ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex group ${message.role === 'user' ? 'justify-end' : 'justify-start'} min-w-0`}
           >
-            <div className={`max-w-full sm:max-w-[90%] md:max-w-[80%] lg:max-w-[75%] flex gap-2 sm:gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            <div className={`max-w-[80%] min-w-0 flex gap-2 sm:gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
               {/* Avatar */}
               <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
                 message.role === 'user' 
@@ -295,9 +293,9 @@ const MessageList = ({
               </div>
               
               {/* Message Bubble */}
-              <div className="flex flex-col flex-1 min-w-0">
-                <div
-                  className={`rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-sm ${
+              <div className="flex flex-col flex-1 min-w-0 max-w-[calc(100%-3rem)] sm:max-w-[calc(100%-3.5rem)]">
+                                <div
+                  className={`rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-sm min-w-0 w-full ${
                     message.role === 'user'
                       ? 'bg-blue-500 text-white rounded-br-none'
                       : 'bg-white text-gray-800 rounded-bl-none border border-gray-100'
@@ -307,12 +305,12 @@ const MessageList = ({
                 >
                   {editingMessageId === message._id ? (
                     // Edit mode
-                    <div className="space-y-3">
+                    <div className="space-y-3 min-w-0">
                       <textarea
                         ref={editTextareaRef}
                         value={editingContent}
                         onChange={(e) => onContentChange(e.target.value)}
-                        className="w-full bg-transparent text-gray-800 focus:outline-none resize-none text-sm sm:text-base"
+                        className="w-full min-w-0 bg-transparent text-gray-800 focus:outline-none resize-none text-sm sm:text-base break-words"
                         rows={3}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && e.ctrlKey) {
@@ -329,35 +327,37 @@ const MessageList = ({
                         <div className="flex items-center gap-2">
                           <button
                             onClick={onCancelEdit}
-                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-white-600 bg-blue-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                           >
                             <X size={14} />
-                            <span>Cancel</span>
+                            <span className="hidden sm:inline">Cancel</span>
+                            <span className="sm:hidden">Cancel</span>
                           </button>
                           <button
                             onClick={onSaveEdit}
                             disabled={!editingContent.trim()}
-                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-500 text-white bg-blue-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-500 text-white hover:bg-blue-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Send size={14} />
-                            <span>Save & Regenerate</span>
+                            <span className="hidden sm:inline">Save & Regenerate</span>
+                            <span className="sm:hidden">Save</span>
                           </button>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    // View mode
-                    <div className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">
+                    // View mode - FIXED: Remove break-all to prevent word splitting
+                    <div className="whitespace-pre-wrap break-words overflow-wrap-break-word leading-relaxed text-sm sm:text-base min-w-0">
                       {message.content || message.text}
                     </div>
                   )}
                 </div>
                 
                 {/* Message Actions & Timestamp */}
-                <div className={`flex items-center justify-between mt-1 px-1 ${
+                <div className={`flex items-center justify-between mt-1 px-1 min-w-0 ${
                   message.role === 'user' ? 'flex-row-reverse' : ''
                 }`}>
-                  <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     {/* Regenerate button (only for LAST user message) */}
                     {message.role === 'user' && 
                      isLastUserMessage(message, index) && 
@@ -366,7 +366,7 @@ const MessageList = ({
                         <button
                           onClick={onRegenerate}
                           disabled={isRegenerating}
-                          className="p-1 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded transition-colors"
+                          className="p-1 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded transition-colors flex-shrink-0"
                           title="Regenerate last response"
                         >
                           <RefreshCw size={12} className={`sm:w-3 sm:h-3 ${isRegenerating ? 'animate-spin' : ''}`} />
@@ -374,7 +374,7 @@ const MessageList = ({
                         
                         <button
                           onClick={() => onEditMessage(message._id, message.content)}
-                          className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                          className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors flex-shrink-0"
                           title="Edit message & regenerate response"
                         >
                           <Edit2 size={12} className="sm:w-3 sm:h-3" />
@@ -386,7 +386,7 @@ const MessageList = ({
                     {!editingMessageId && (
                       <button
                         onClick={() => handleCopyMessage(message.content || message.text)}
-                        className={`p-1 ${
+                        className={`p-1 flex-shrink-0 ${
                           copiedMessageId === (message.content || message.text)
                             ? 'text-green-500 hover:text-green-600 bg-green-50'
                             : 'text-gray-400 hover:text-purple-500 hover:bg-purple-50'
@@ -403,7 +403,7 @@ const MessageList = ({
                   </div>
                   
                   {/* Timestamp */}
-                  <div className={`text-xs ${message.role === 'user' ? 'text-blue-200' : 'text-gray-400'}`}>
+                  <div className={`text-xs flex-shrink-0 ${message.role === 'user' ? 'text-blue-200' : 'text-gray-400'}`}>
                     {format(new Date(message.createdAt || message.timestamp || new Date()), 'HH:mm')}
                     {message.error && <span className="text-red-500 ml-1">• Error</span>}
                   </div>

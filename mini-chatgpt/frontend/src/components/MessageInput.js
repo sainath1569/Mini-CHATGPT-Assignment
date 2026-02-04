@@ -4,13 +4,13 @@ import { Send, Paperclip, Mic } from "lucide-react";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
-const MessageInput = ({ chatId, onSend, disabled }) => {
+const MessageInput = ({ chatId, onSend, onFirstMessage, disabled, isCreatingNewChat }) => {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const textareaRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Send message mutation using fetch directly
+  // Send message mutation using fetch directly (only for existing chats)
   const sendMessageMutation = useMutation({
     mutationFn: async ({ chatId, content }) => {
       const response = await fetch(`${API_BASE_URL}/chats/${chatId}/messages`, {
@@ -42,8 +42,16 @@ const MessageInput = ({ chatId, onSend, disabled }) => {
   });
 
   const handleSend = () => {
-    if (!message.trim() || disabled || !chatId) return;
-    sendMessageMutation.mutate({ chatId, content: message });
+    if (!message.trim() || disabled) return;
+    
+    if (!chatId && onFirstMessage) {
+      // Landing page: Create new chat with first message
+      onFirstMessage(message);
+      setMessage(""); // Clear input immediately
+    } else if (chatId && onSend) {
+      // Existing chat: Send message normally
+      sendMessageMutation.mutate({ chatId, content: message });
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -53,11 +61,11 @@ const MessageInput = ({ chatId, onSend, disabled }) => {
     }
   };
 
-
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      // Remove the Math.min limit - let CSS control max height
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [message]);
 
@@ -72,10 +80,13 @@ const MessageInput = ({ chatId, onSend, disabled }) => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full border border-gray-300 rounded-xl pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[56px] max-h-[120px] disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full border border-gray-300 rounded-xl pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none 
+                min-h-[56px] 
+                max-h-[56px]  /* Fixed max height on ALL screens */
+                disabled:bg-gray-100 disabled:cursor-not-allowed"
               rows={1}
-              placeholder="Type your message here..."
-              disabled={disabled || sendMessageMutation.isPending}
+              placeholder={chatId ? "Type your message here..." : "Type a message to start a new chat..."}
+              disabled={disabled}
             />
             
             {/* Character count */}
@@ -87,20 +98,28 @@ const MessageInput = ({ chatId, onSend, disabled }) => {
           </div>
 
           {/* Send button */}
-                <button
-                onClick={handleSend}
-                disabled={disabled || sendMessageMutation.isPending || !message.trim()}
-                className="flex-shrink-0 bg-blue-600 text-white p-4 mb-2 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                >
-                {sendMessageMutation.isPending ? (
-                  <div className="w-7 h-7 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <Send size={26} />
-                )}
-                </button>
-              </div>
+          <button
+            onClick={handleSend}
+            disabled={disabled || !message.trim() || (chatId && sendMessageMutation.isPending) || (!chatId && isCreatingNewChat)}
+            className="flex-shrink-0 bg-blue-600 text-white p-4 mb-2 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+          >
+            {chatId ? (
+              sendMessageMutation.isPending ? (
+                <div className="w-7 h-7 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Send size={26} />
+              )
+            ) : (
+              isCreatingNewChat ? (
+                <div className="w-7 h-7 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Send size={26} />
+              )
+            )}
+          </button>
+        </div>
 
-              {/* Recording indicator */}
+        {/* Recording indicator */}
         {isRecording && (
           <div className="mt-3 flex items-center justify-center gap-2 text-red-600">
             <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
@@ -116,7 +135,7 @@ const MessageInput = ({ chatId, onSend, disabled }) => {
 
         {/* Helper text */}
         <div className="mt-2 text-xs text-gray-500 text-center">
-          Press Enter to send • Shift+Enter for new line
+          {chatId ? "Press Enter to send • Shift+Enter for new line" : "Press Enter to start a new chat"}
         </div>
       </div>
     </div>
