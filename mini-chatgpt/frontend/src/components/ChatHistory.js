@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { Trash2, Search, Edit2, MessageSquare, Clock, Mail, Shield, LogOut, ChevronDown, ChevronUp, CheckCircle, XCircle, Server } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "https://mini-chatgpt-assignment.onrender.com/api";
 
 const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error, onCloseSidebar }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -268,7 +268,7 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
       return '';
     }
   };  
-  
+
   const handleTitleEdit = (chat) => {
     setEditingChatId(chat._id);
     setEditingTitle(chat.title || 'Untitled Chat');

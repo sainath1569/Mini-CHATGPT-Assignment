@@ -7,7 +7,7 @@ import MessageList from "../components/MessageList";
 import MessageInput from "../components/MessageInput";
 import LoadingIndicator from "../components/LoadingIndicator";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "https://mini-chatgpt-assignment.onrender.com/api";
 
 // API functions using fetch
 const fetchChats = async () => {

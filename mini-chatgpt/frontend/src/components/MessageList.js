@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useState } from "react";
 import { format } from 'date-fns';
 import { Bot, User, AlertCircle, RefreshCw, Edit2, Send, X, Check, Copy } from 'lucide-react';

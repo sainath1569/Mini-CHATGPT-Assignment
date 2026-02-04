@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Send, Paperclip, Mic } from "lucide-react";
+import { Send } from "lucide-react";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "https://mini-chatgpt-assignment.onrender.com/api";
 
 const MessageInput = ({ chatId, onSend, onFirstMessage, disabled, isCreatingNewChat }) => {
   const [message, setMessage] = useState("");
