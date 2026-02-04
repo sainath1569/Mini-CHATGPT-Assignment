@@ -374,7 +374,7 @@ const ChatPage = () => {
             <img 
               src="/Mini-Chatgpt.jpg" 
               alt="Mini-ChatGPT"
-              className="w-8 h-8 rounded-full object-cover border border-gray-200"
+              className="w-13 h-10 squared-full object-cover "
             />
           </div>
         )}
