@@ -132,7 +132,7 @@ const ChatPage = () => {
   if (isMobile && sidebarOpen) {
     setSidebarOpen(false);
   }
-}, [chatId, isMobile, sidebarOpen]);
+}, [chatId, isMobile]);
 
 
   // ✅ Fetch chats list
