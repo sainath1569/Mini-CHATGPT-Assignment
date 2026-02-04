@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Trash2, Search, Edit2, MessageSquare, Clock, User, Mail, Globe, Shield, LogOut, ChevronDown, ChevronUp, CheckCircle, XCircle, Server } from 'lucide-react';
+import { Trash2, Search, Edit2, MessageSquare, Clock, Mail, Shield, LogOut, ChevronDown, ChevronUp, CheckCircle, XCircle, Server } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
@@ -267,23 +267,7 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
     } catch {
       return '';
     }
-  };
-
-  const formatLastLogin = (dateString) => {
-    if (!dateString) return 'Just now';
-    try {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffInMinutes = (now - date) / (1000 * 60);
-      
-      if (diffInMinutes < 1) return 'Just now';
-      if (diffInMinutes < 60) return `${Math.floor(diffInMinutes)}m ago`;
-      if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-      return format(date, 'MMM d, HH:mm');
-    } catch {
-      return 'Recently';
-    }
-  };
+  };  
   
   const handleTitleEdit = (chat) => {
     setEditingChatId(chat._id);

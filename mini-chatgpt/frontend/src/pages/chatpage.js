@@ -128,12 +128,12 @@ const ChatPage = () => {
     };
   }, []);
 
-  // Close sidebar when chat is selected on mobile
-  useEffect(() => {
-    if (isMobile && sidebarOpen) {
-      setSidebarOpen(false);
-    }
-  }, [chatId, isMobile]);
+ useEffect(() => {
+  if (isMobile && sidebarOpen) {
+    setSidebarOpen(false);
+  }
+}, [chatId, isMobile, sidebarOpen]);
+
 
   // ✅ Fetch chats list
   const {
