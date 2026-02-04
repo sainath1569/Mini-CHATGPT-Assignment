@@ -80,16 +80,13 @@ const MessageList = ({
   const handleCopyMessage = async (content) => {
     try {
       await navigator.clipboard.writeText(content);
-      // Show toast notification with WhatsApp-style message
       setToastMessage('copied');
       setShowCopyToast(true);
       
-      // Also set the copied message ID for the check icon
       setCopiedMessageId(content);
       setTimeout(() => setCopiedMessageId(null), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
-      // Fallback for browsers that don't support clipboard API
       const textArea = document.createElement('textarea');
       textArea.value = content;
       document.body.appendChild(textArea);
@@ -108,20 +105,19 @@ const MessageList = ({
   // Image error fallback
   const handleImageError = (e) => {
     e.target.onerror = null;
-    // Create a simple fallback with gradient background
     e.target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%233b82f6'/%3E%3Cstop offset='100%25' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grad)' rx='20'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='30' font-weight='bold' fill='white'%3EM%3C/text%3E%3C/svg%3E`;
   };
   
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
-  <div className="text-center">
-    <div className="flex flex-col items-center gap-4">
-      <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-500"></div>
-      <p className="text-sm sm:text-base text-gray-600">Loading messages...</p>
-    </div>
-  </div>
-</div>
+        <div className="text-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-500"></div>
+            <p className="text-sm sm:text-base text-gray-600">Loading messages...</p>
+          </div>
+        </div>
+      </div>
     );
   }
   
@@ -150,7 +146,6 @@ const MessageList = ({
       <div className="flex items-center justify-center h-full">
         <div className="text-center max-w-2xl px-4">
           <div className="mb-8">
-            {/* Replace Sparkles with your image */}
             <div className="inline-flex items-center justify-center w-36 h-33 squared-2xl overflow-hidden bg-gradient-to-r from-blue-500/20 to-purple-600/20 mb-6 mx-auto">
               <img 
                 src="/Mini-Chatgpt.jpg" 
@@ -193,7 +188,6 @@ const MessageList = ({
       <div className="flex items-center justify-center h-full">
         <div className="text-center max-w-md px-4">
           <div className="mb-6">
-            {/* Replace Sparkles with your image */}
             <div className="inline-flex items-center justify-center w-36 h-33 rounded-xl overflow-hidden bg-gradient-to-r from-blue-500/20 to-purple-600/20 mb-4 mx-auto">
               <img 
                 src="/Mini-Chatgpt.jpg" 
@@ -227,7 +221,7 @@ const MessageList = ({
   
   return (
     <div className="h-full flex flex-col min-w-0">
-      {/* Copy Toast Notification - WhatsApp Style */}
+      {/* Copy Toast Notification */}
       {showCopyToast && (
         <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in-up">
           <div className="bg-gray-800/90 backdrop-blur-sm text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 min-w-[140px] justify-center">
@@ -240,7 +234,6 @@ const MessageList = ({
       {currentChat && (
         <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
           <div className="flex items-center">
-            {/* Title container that centers content while leaving space for image */}
             <div className="flex-1 flex items-center justify-center relative">
               <div className="text-center min-w-0">
                 <h1 className="text-base md:text-lg font-semibold text-gray-800 px-12 md:px-0 break-words line-clamp-2">
@@ -249,17 +242,13 @@ const MessageList = ({
               </div>
             </div>
             
-            {/* Image on the right (mobile only) */}
             <div className="md:hidden absolute right-4">
               <div className="relative">
                 <img 
                   src="/Mini-Chatgpt.jpg" 
                   alt="Mini-ChatGPT"
                   className="w-13 h-10 squared-full object-cover border-2 border-gray-100 shadow"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%233b82f6'/%3E%3Cstop offset='100%25' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='40' height='40' fill='url(%23grad)' rx='20'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='16' font-weight='bold' fill='white'%3EM%3C/text%3E%3C/svg%3E`;
-                  }}
+                  onError={handleImageError}
                 />
               </div>
             </div>
@@ -267,7 +256,7 @@ const MessageList = ({
         </div>
       )}
       
-      {/* Messages Container - CRITICAL FIXES HERE */}
+      {/* Messages Container - FIXED FOR NEAT DISPLAY */}
       <div 
         ref={containerRef}
         onScroll={handleScroll}
@@ -278,7 +267,9 @@ const MessageList = ({
             key={message._id || index}
             className={`flex group ${message.role === 'user' ? 'justify-end' : 'justify-start'} min-w-0`}
           >
-            <div className={`max-w-[80%] min-w-0 flex gap-2 sm:gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            <div className={`max-w-[90%] sm:max-w-[85%] md:max-w-[80%] min-w-0 flex gap-2 sm:gap-3 ${
+              message.role === 'user' ? 'flex-row-reverse' : ''
+            }`}>
               {/* Avatar */}
               <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
                 message.role === 'user' 
@@ -293,8 +284,8 @@ const MessageList = ({
               </div>
               
               {/* Message Bubble */}
-              <div className="flex flex-col flex-1 min-w-0 max-w-[calc(100%-3rem)] sm:max-w-[calc(100%-3.5rem)]">
-                                <div
+              <div className="flex flex-col flex-1 min-w-0 max-w-full">
+                <div
                   className={`rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-sm min-w-0 w-full ${
                     message.role === 'user'
                       ? 'bg-blue-500 text-white rounded-br-none'
@@ -346,8 +337,8 @@ const MessageList = ({
                       </div>
                     </div>
                   ) : (
-                    // View mode - FIXED: Remove break-all to prevent word splitting
-                    <div className="whitespace-pre-wrap break-words overflow-wrap-break-word leading-relaxed text-sm sm:text-base min-w-0">
+                    // View mode - FIXED FOR NEAT TEXT DISPLAY
+                    <div className="whitespace-pre-wrap break-words overflow-wrap-anywhere leading-relaxed text-sm sm:text-base min-w-0">
                       {message.content || message.text}
                     </div>
                   )}
@@ -358,7 +349,7 @@ const MessageList = ({
                   message.role === 'user' ? 'flex-row-reverse' : ''
                 }`}>
                   <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                    {/* Regenerate button (only for LAST user message) */}
+                    {/* Regenerate button */}
                     {message.role === 'user' && 
                      isLastUserMessage(message, index) && 
                      !editingMessageId && (
@@ -382,7 +373,7 @@ const MessageList = ({
                       </>
                     )}
                     
-                    {/* Copy button for EVERY message */}
+                    {/* Copy button */}
                     {!editingMessageId && (
                       <button
                         onClick={() => handleCopyMessage(message.content || message.text)}
@@ -403,7 +394,9 @@ const MessageList = ({
                   </div>
                   
                   {/* Timestamp */}
-                  <div className={`text-xs flex-shrink-0 ${message.role === 'user' ? 'text-blue-200' : 'text-gray-400'}`}>
+                  <div className={`text-xs flex-shrink-0 whitespace-nowrap ${
+                    message.role === 'user' ? 'text-blue-200' : 'text-gray-400'
+                  }`}>
                     {format(new Date(message.createdAt || message.timestamp || new Date()), 'HH:mm')}
                     {message.error && <span className="text-red-500 ml-1">• Error</span>}
                   </div>

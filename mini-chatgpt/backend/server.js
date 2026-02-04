@@ -11,7 +11,7 @@ const startServer = async () => {
     
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+      console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
       console.log(`🔗 API Base: http://localhost:${PORT}/api`);
       console.log(`📊 MongoDB: ${process.env.MONGODB_URI || 'mongodb://localhost:27017/chat-app'}`);
     });

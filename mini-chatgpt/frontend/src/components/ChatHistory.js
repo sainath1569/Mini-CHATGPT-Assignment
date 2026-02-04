@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Trash2, Search, Edit2, MessageSquare, Clock, User, Mail, Globe, Shield, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Search, Edit2, MessageSquare, Clock, User, Mail, Globe, Shield, LogOut, ChevronDown, ChevronUp, CheckCircle, XCircle, Server } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
@@ -17,6 +17,8 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
     role: 'Premium User',
   });
   const [showUserDetails, setShowUserDetails] = useState(false);
+  const [backendHealth, setBackendHealth] = useState(null);
+  const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch user info on component mount
@@ -77,6 +79,99 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
 
     fetchUserInfo();
   }, []);
+
+  // Check backend health on component mount and periodically
+  useEffect(() => {
+    const checkBackendHealth = async () => {
+      try {
+        setIsCheckingHealth(true);
+        const response = await fetch(`${API_BASE_URL}/health`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setBackendHealth({
+            status: 'healthy',
+            message: data.message || 'Backend is running',
+            timestamp: new Date().toISOString(),
+            responseTime: Date.now()
+          });
+        } else {
+          setBackendHealth({
+            status: 'unhealthy',
+            message: 'Backend is not responding properly',
+            timestamp: new Date().toISOString(),
+            responseTime: Date.now()
+          });
+        }
+      } catch (error) {
+        setBackendHealth({
+          status: 'error',
+          message: 'Cannot connect to backend',
+          timestamp: new Date().toISOString(),
+          responseTime: Date.now()
+        });
+      } finally {
+        setIsCheckingHealth(false);
+      }
+    };
+
+    checkBackendHealth();
+    
+    // Check health every 30 seconds
+    const intervalId = setInterval(checkBackendHealth, 30000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
+
+
+
+  // Manually check backend health
+  const handleCheckHealth = async () => {
+    try {
+      setIsCheckingHealth(true);
+      const startTime = Date.now();
+      const response = await fetch(`${API_BASE_URL}/health`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const responseTime = Date.now() - startTime;
+        
+        setBackendHealth({
+          status: 'healthy',
+          message: data.message || 'Backend is running',
+          timestamp: new Date().toISOString(),
+          responseTime
+        });
+        
+        
+      } else {
+        setBackendHealth({
+          status: 'unhealthy',
+          message: 'Backend returned error',
+          timestamp: new Date().toISOString(),
+          responseTime: Date.now() - startTime
+        });
+        
+      
+      }
+    } catch (error) {
+      setBackendHealth({
+        status: 'error',
+        message: 'Cannot connect to backend',
+        timestamp: new Date().toISOString(),
+        responseTime: Date.now()
+      });
+      
+      
+    } finally {
+      setIsCheckingHealth(false);
+    }
+  };
 
   // Update chat title mutation
   const updateTitleMutation = useMutation({
@@ -240,6 +335,42 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
     }, 0);
     
     return colors[Math.abs(hash) % colors.length];
+  };
+
+  // Get health status color and icon
+  const getHealthStatus = () => {
+    if (!backendHealth) return { color: 'text-gray-500', bgColor: 'bg-gray-100', icon: <Server className="w-4 h-4" /> };
+    
+    switch (backendHealth.status) {
+      case 'healthy':
+        return { 
+          color: 'text-green-600', 
+          bgColor: 'bg-green-50', 
+          icon: <CheckCircle className="w-4 h-4" />,
+          text: 'Backend OK'
+        };
+      case 'unhealthy':
+        return { 
+          color: 'text-yellow-600', 
+          bgColor: 'bg-yellow-50', 
+          icon: <Server className="w-4 h-4" />,
+          text: 'Backend Warning'
+        };
+      case 'error':
+        return { 
+          color: 'text-red-600', 
+          bgColor: 'bg-red-50', 
+          icon: <XCircle className="w-4 h-4" />,
+          text: 'Backend Error'
+        };
+      default:
+        return { 
+          color: 'text-gray-500', 
+          bgColor: 'bg-gray-100', 
+          icon: <Server className="w-4 h-4" />,
+          text: 'Checking...'
+        };
+    }
   };
   
   if (isLoading) {
@@ -477,7 +608,7 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
               </div>
             </div>
             <div className="text-gray-400">
-              {showUserDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              {showUserDetails ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
             </div>
           </div>
         </div>
@@ -485,6 +616,23 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
         {/* Expanded User Details */}
         {showUserDetails && (
           <div className="mt-3 space-y-3 animate-fadeIn">
+            {/* Backend Health Check */}
+            <button
+              onClick={handleCheckHealth}
+              disabled={isCheckingHealth}
+              className={`w-full flex items-center justify-between gap-2 text-sm py-2.5 px-4 rounded-lg border transition-colors ${getHealthStatus().bgColor} ${getHealthStatus().color} hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              <div className="flex items-center gap-2">
+                {isCheckingHealth ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  getHealthStatus().icon
+                )}
+                <span className="font-medium">Backend Health</span>
+              </div>
+              
+            </button>
+
             {/* Role Badge */}
             <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm rounded-lg p-3">
               <div className="flex items-center gap-2">
@@ -499,7 +647,7 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 py-2.5 px-4 rounded-lg border border-red-200 transition-colors mt-2"
+              className="w-full flex items-center justify-center gap-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 py-2.5 px-4 rounded-lg border border-red-200 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -507,15 +655,22 @@ const ChatHistory = ({ chats = [], currentChatId, onSelectChat, isLoading, error
           </div>
         )}
 
-        {/* Always visible logout button when details are collapsed */}
+        {/* Always visible buttons when details are collapsed */}
         {!showUserDetails && (
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 py-2.5 px-4 rounded-lg border border-red-200 transition-colors mt-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
+          <div className="space-y-2 mt-2">
+            
+              
+                <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 py-2.5 px-4 rounded-lg border border-red-200 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+              
+
+            
+          </div>
         )}
       </div>
     </div>
