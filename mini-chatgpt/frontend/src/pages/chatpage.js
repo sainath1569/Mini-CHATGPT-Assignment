@@ -106,7 +106,6 @@ const ChatPage = () => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
   const [localMessages, setLocalMessages] = useState([]);
-  const [pendingMessage, setPendingMessage] = useState(null);
 
   // Responsive sidebar handling
   useEffect(() => {
@@ -157,7 +156,6 @@ const ChatPage = () => {
     data: currentChat,
     isLoading: isLoadingChat,
     error: chatError,
-    refetch: refetchChat,
   } = useQuery({
     queryKey: ["chat", chatId],
     queryFn: () => fetchChat(chatId),
