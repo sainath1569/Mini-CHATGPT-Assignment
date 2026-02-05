@@ -308,6 +308,65 @@ router.post('/chats/:id/messages', messageLimiter, async (req, res, next) => {
     next(error);
   }
 });
+router.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Welcome to Mini ChatGPT API',
+    description: 'A lightweight ChatGPT-like API service with conversation management',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    service: 'Chat API',
+    endpoints: {
+      // Root & Documentation
+      'GET /': 'API documentation (this page)',
+      
+      // Chat Management
+      'POST /chats': 'Create a new chat (Rate limited: 50/hour)',
+      'GET /chats': 'Get all chats (limited to 50 most recent)',
+      'GET /chats/:id': 'Get a specific chat with its messages',
+      'PATCH /chats/:id': 'Update chat title',
+      'DELETE /chats/:id': 'Delete a chat and all its messages',
+      
+      // Message Operations
+      'GET /chats/:id/messages': 'Get all messages for a specific chat',
+      'POST /chats/:id/messages': 'Send a message to a chat (Rate limited: 50/10min)',
+      
+      // Advanced Features
+      'POST /chats/:id/regenerate': 'Regenerate the last assistant response',
+      'PUT /chats/:chatId/messages/:messageId/regenerate': 'Edit a user message and regenerate the assistant response',
+      
+      // Statistics
+      'GET /stats': 'Get API statistics (total chats & messages)',
+      
+      // Health Check (in main app)
+      'GET /health': 'Health check endpoint'
+    },
+    rateLimits: {
+      'POST /chats': '50 requests per hour',
+      'POST /chats/:id/messages': '50 requests per 10 minutes'
+    },
+    features: [
+      'Chat creation and management',
+      'AI-powered responses (OpenAI or mock responses)',
+      'Message regeneration',
+      'Message editing with regeneration',
+      'Rate limiting for spam protection',
+      'Chat statistics'
+    ],
+    quickStart: [
+      '1. POST /chats - Create a new chat',
+      '2. POST /chats/:chatId/messages - Send your first message',
+      '3. GET /chats/:chatId - Get the conversation',
+      '4. POST /chats/:chatId/regenerate - Regenerate last response if needed'
+    ],
+    notes: [
+      'All :id parameters are MongoDB ObjectId strings',
+      'POST endpoints require JSON body with appropriate fields',
+      'If OpenAI API key is not configured, mock responses will be used',
+      'Messages are limited to 4096 characters'
+    ],
+    support: 'For issues, check the API documentation or contact support'
+  });
+});
 
 // Get messages for a chat - NO ObjectId validation
 router.get('/chats/:id/messages', async (req, res, next) => {
