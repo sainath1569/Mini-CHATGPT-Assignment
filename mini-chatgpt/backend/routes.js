@@ -309,63 +309,428 @@ router.post('/chats/:id/messages', messageLimiter, async (req, res, next) => {
   }
 });
 router.get('/', (req, res) => {
-  res.status(200).json({
-    message: 'Welcome to Mini ChatGPT API',
-    description: 'A lightweight ChatGPT-like API service with conversation management',
-    version: '1.0.0',
-    timestamp: new Date().toISOString(),
-    service: 'Chat API',
-    endpoints: {
-      // Root & Documentation
-      'GET /': 'API documentation (this page)',
-      
-      // Chat Management
-      'POST /chats': 'Create a new chat (Rate limited: 50/hour)',
-      'GET /chats': 'Get all chats (limited to 50 most recent)',
-      'GET /chats/:id': 'Get a specific chat with its messages',
-      'PATCH /chats/:id': 'Update chat title',
-      'DELETE /chats/:id': 'Delete a chat and all its messages',
-      
-      // Message Operations
-      'GET /chats/:id/messages': 'Get all messages for a specific chat',
-      'POST /chats/:id/messages': 'Send a message to a chat (Rate limited: 50/10min)',
-      
-      // Advanced Features
-      'POST /chats/:id/regenerate': 'Regenerate the last assistant response',
-      'PUT /chats/:chatId/messages/:messageId/regenerate': 'Edit a user message and regenerate the assistant response',
-      
-      // Statistics
-      'GET /stats': 'Get API statistics (total chats & messages)',
-      
-      // Health Check (in main app)
-      'GET /health': 'Health check endpoint'
-    },
-    rateLimits: {
-      'POST /chats': '50 requests per hour',
-      'POST /chats/:id/messages': '50 requests per 10 minutes'
-    },
-    features: [
-      'Chat creation and management',
-      'AI-powered responses (OpenAI or mock responses)',
-      'Message regeneration',
-      'Message editing with regeneration',
-      'Rate limiting for spam protection',
-      'Chat statistics'
-    ],
-    quickStart: [
-      '1. POST /chats - Create a new chat',
-      '2. POST /chats/:chatId/messages - Send your first message',
-      '3. GET /chats/:chatId - Get the conversation',
-      '4. POST /chats/:chatId/regenerate - Regenerate last response if needed'
-    ],
-    notes: [
-      'All :id parameters are MongoDB ObjectId strings',
-      'POST endpoints require JSON body with appropriate fields',
-      'If OpenAI API key is not configured, mock responses will be used',
-      'Messages are limited to 4096 characters'
-    ],
-    support: 'For issues, check the API documentation or contact support'
-  });
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mini ChatGPT API</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                line-height: 1.6;
+                min-height: 100vh;
+                padding: 20px;
+            }
+            
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            
+            .header {
+                background: white;
+                border-radius: 16px;
+                padding: 40px;
+                margin-bottom: 24px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+            
+            .logo {
+                font-size: 48px;
+                margin-bottom: 16px;
+            }
+            
+            h1 {
+                color: #2d3748;
+                font-size: 32px;
+                font-weight: 600;
+                margin-bottom: 12px;
+            }
+            
+            .description {
+                color: #4a5568;
+                font-size: 18px;
+                margin-bottom: 24px;
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .status-badge {
+                display: inline-flex;
+                align-items: center;
+                background: #48bb78;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 500;
+                margin-bottom: 32px;
+            }
+            
+            .status-badge::before {
+                content: "●";
+                margin-right: 8px;
+                font-size: 12px;
+            }
+            
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px;
+                margin-bottom: 32px;
+            }
+            
+            .card {
+                background: white;
+                border-radius: 12px;
+                padding: 24px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            
+            .card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            }
+            
+            .card-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #2d3748;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .endpoint-list {
+                list-style: none;
+            }
+            
+            .endpoint-item {
+                margin-bottom: 12px;
+                padding: 12px;
+                background: #f7fafc;
+                border-radius: 8px;
+                border-left: 4px solid #667eea;
+            }
+            
+            .method {
+                display: inline-block;
+                padding: 4px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                margin-right: 10px;
+                min-width: 60px;
+                text-align: center;
+            }
+            
+            .get { background: #48bb78; color: white; }
+            .post { background: #4299e1; color: white; }
+            .put { background: #ed8936; color: white; }
+            .patch { background: #9f7aea; color: white; }
+            .delete { background: #f56565; color: white; }
+            
+            .endpoint-path {
+                font-family: 'Monaco', 'Consolas', monospace;
+                font-size: 14px;
+                color: #2d3748;
+            }
+            
+            .endpoint-desc {
+                color: #718096;
+                font-size: 14px;
+                margin-top: 6px;
+                margin-left: 72px;
+            }
+            
+            .feature-list {
+                list-style: none;
+            }
+            
+            .feature-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                color: #4a5568;
+            }
+            
+            .feature-item::before {
+                content: "✓";
+                color: #48bb78;
+                margin-right: 10px;
+                font-weight: bold;
+            }
+            
+            .quickstart {
+                background: #fffaf0;
+                border-left: 4px solid #ed8936;
+            }
+            
+            .quickstart-step {
+                margin-bottom: 10px;
+                padding-left: 8px;
+            }
+            
+            .step-number {
+                display: inline-block;
+                width: 24px;
+                height: 24px;
+                background: #ed8936;
+                color: white;
+                border-radius: 50%;
+                text-align: center;
+                line-height: 24px;
+                margin-right: 12px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            
+            .info-box {
+                background: white;
+                border-radius: 12px;
+                padding: 24px;
+                margin-top: 24px;
+                border-top: 4px solid #4299e1;
+            }
+            
+            .info-box h3 {
+                color: #2d3748;
+                margin-bottom: 16px;
+                font-size: 18px;
+            }
+            
+            .note-item {
+                padding: 8px 0;
+                color: #4a5568;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .note-item:last-child {
+                border-bottom: none;
+            }
+            
+            .footer {
+                text-align: center;
+                margin-top: 40px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 14px;
+            }
+            
+            .footer a {
+                color: white;
+                text-decoration: none;
+                font-weight: 500;
+            }
+            
+            .footer a:hover {
+                text-decoration: underline;
+            }
+            
+            @media (max-width: 768px) {
+                .grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .header {
+                    padding: 24px;
+                }
+                
+                h1 {
+                    font-size: 24px;
+                }
+                
+                .description {
+                    font-size: 16px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🤖</div>
+                <h1>Mini ChatGPT API</h1>
+                <p class="description">A lightweight ChatGPT-like API service with conversation management</p>
+                <div class="status-badge">Version 1.0.0 • Service Online</div>
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3 class="card-title">📊 Chat Management</h3>
+                    <ul class="endpoint-list">
+                        <li class="endpoint-item">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/chats</span>
+                            <div class="endpoint-desc">Create new chat (50/hr limit)</div>
+                        </li>
+                        <li class="endpoint-item">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/chats</span>
+                            <div class="endpoint-desc">Get all chats (50 most recent)</div>
+                        </li>
+                        <li class="endpoint-item">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/chats/:id</span>
+                            <div class="endpoint-desc">Get specific chat with messages</div>
+                        </li>
+                        <li class="endpoint-item">
+                            <span class="method patch">PATCH</span>
+                            <span class="endpoint-path">/chats/:id</span>
+                            <div class="endpoint-desc">Update chat title</div>
+                        </li>
+                        <li class="endpoint-item">
+                            <span class="method delete">DELETE</span>
+                            <span class="endpoint-path">/chats/:id</span>
+                            <div class="endpoint-desc">Delete chat and all messages</div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">💬 Message Operations</h3>
+                    <ul class="endpoint-list">
+                        <li class="endpoint-item">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/chats/:id/messages</span>
+                            <div class="endpoint-desc">Get all messages for a chat</div>
+                        </li>
+                        <li class="endpoint-item">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/chats/:id/messages</span>
+                            <div class="endpoint-desc">Send message (50/10min limit)</div>
+                        </li>
+                        <li class="endpoint-item">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/chats/:id/regenerate</span>
+                            <div class="endpoint-desc">Regenerate last assistant response</div>
+                        </li>
+                        <li class="endpoint-item">
+                            <span class="method put">PUT</span>
+                            <span class="endpoint-path">/chats/:chatId/messages/:messageId/regenerate</span>
+                            <div class="endpoint-desc">Edit message & regenerate</div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">✨ Features</h3>
+                    <ul class="feature-list">
+                        <li class="feature-item">Chat creation and management</li>
+                        <li class="feature-item">AI-powered responses (OpenAI or mock)</li>
+                        <li class="feature-item">Message regeneration</li>
+                        <li class="feature-item">Message editing with regeneration</li>
+                        <li class="feature-item">Rate limiting for spam protection</li>
+                        <li class="feature-item">Chat statistics</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="grid">
+                <div class="card quickstart">
+                    <h3 class="card-title">🚀 Quick Start Guide</h3>
+                    <div class="quickstart-step">
+                        <span class="step-number">1</span>
+                        <strong>POST /chats</strong> - Create a new chat
+                    </div>
+                    <div class="quickstart-step">
+                        <span class="step-number">2</span>
+                        <strong>POST /chats/:chatId/messages</strong> - Send your first message
+                    </div>
+                    <div class="quickstart-step">
+                        <span class="step-number">3</span>
+                        <strong>GET /chats/:chatId</strong> - Get the conversation
+                    </div>
+                    <div class="quickstart-step">
+                        <span class="step-number">4</span>
+                        <strong>POST /chats/:chatId/regenerate</strong> - Regenerate if needed
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">📈 System Endpoints</h3>
+                    <ul class="endpoint-list">
+                        <li class="endpoint-item">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/stats</span>
+                            <div class="endpoint-desc">Get API statistics</div>
+                        </li>
+                        <li class="endpoint-item">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/health</span>
+                            <div class="endpoint-desc">Health check endpoint</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <h3>📝 Important Notes</h3>
+                <div class="note-item">• All :id parameters are MongoDB ObjectId strings</div>
+                <div class="note-item">• POST endpoints require JSON body with appropriate fields</div>
+                <div class="note-item">• If OpenAI API key is not configured, mock responses will be used</div>
+                <div class="note-item">• Messages are limited to 4096 characters</div>
+                <div class="note-item">• Rate limits: 50 new chats/hour, 50 messages/10min</div>
+            </div>
+            
+            <div class="footer">
+                <p>Timestamp: ${new Date().toLocaleString()} • For support, check the API documentation</p>
+                <p>Base URL: /api • All endpoints return JSON format</p>
+            </div>
+        </div>
+        
+        <script>
+            // Add subtle animations
+            document.addEventListener('DOMContentLoaded', function() {
+                const cards = document.querySelectorAll('.card');
+                cards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        card.style.transition = 'opacity 0.5s, transform 0.5s';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            });
+            
+            // Highlight current endpoint if accessed with query param
+            const urlParams = new URLSearchParams(window.location.search);
+            const endpoint = urlParams.get('endpoint');
+            if (endpoint) {
+                setTimeout(() => {
+                    const endpointItems = document.querySelectorAll('.endpoint-item');
+                    endpointItems.forEach(item => {
+                        if (item.textContent.includes(endpoint)) {
+                            item.style.background = '#ebf8ff';
+                            item.style.borderLeftColor = '#4299e1';
+                            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    });
+                }, 500);
+            }
+        </script>
+    </body>
+    </html>
+  `;
+  
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
 });
 
 // Get messages for a chat - NO ObjectId validation
