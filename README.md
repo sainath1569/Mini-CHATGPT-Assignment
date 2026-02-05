@@ -1,6 +1,20 @@
 # Mini ChatGPT
 
 A lightweight ChatGPT-like web application with real-time messaging and AI-powered responses.
+## 📸 Screenshots
+
+### Desktop View
+<div align="center">
+  <img src="./mini-chatgpt/frontend/public/Screenshot 2026-02-05 100755.png" alt="Mobile View 1" width="500"/>
+  <img src="./mini-chatgpt/frontend/public/Screenshot 2026-02-05 100825.png" alt="Mobile View 2" width="500"/>
+</div>
+
+### Mobile View
+<div align="center">
+  <img src="./mini-chatgpt/frontend/public/Screenshot 2026-02-05 100522.png" alt="Desktop View 1" width="300" height="500"/>
+  <img src="./mini-chatgpt/frontend/public/Screenshot 2026-02-05 100638.png" alt="Desktop View 2" width="300" height="500"/>
+</div>
+
 
 ## 🚀 Live Demo
 - **Frontend**: https://mini-chatgpt-assignment.vercel.app
@@ -44,12 +58,14 @@ cd mini-chatgpt/frontend/
 npm install
 ```
 ## 4.Run Application
-```bash
+
 # Terminal 1 - Backend
+```bash
 node server.js
 # Server will run on port number 5000
-
+```
 # Terminal 2 - Frontend
+```bash 
 npm start
 # Visit http://localhost:3000
 ```
