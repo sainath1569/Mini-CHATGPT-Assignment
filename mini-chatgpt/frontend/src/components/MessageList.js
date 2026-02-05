@@ -134,7 +134,7 @@ const MessageList = ({
           <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
           <p className="text-red-300 font-medium mb-2">Error loading messages</p>
           <p className="text-red-400 text-sm mb-4">
-            {error.message || 'Please check your connection and try again'}
+            {error.message +" .Try logging out and back in!"|| 'Please check your connection and try logging out and back in.'}
           </p>
           <button 
             onClick={() => window.location.reload()}
