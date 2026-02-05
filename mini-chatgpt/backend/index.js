@@ -32,7 +32,9 @@ const limiter = rateLimit({
   }
 });
 app.use('/api', limiter);
-
+app.get('/', (req, res) => {
+  res.send('Welcome to the Mini-Chatgpt API');
+});
 // Health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
