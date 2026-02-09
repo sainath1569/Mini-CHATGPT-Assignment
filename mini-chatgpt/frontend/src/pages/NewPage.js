@@ -146,7 +146,7 @@ export default function NewPage() {
               </div>
               <div>
                 <div className="text-xs text-gray-500">Domain</div>
-                <a className="text-white text-sm hover:underline">
+                <a className="text-white text-sm hover:underline" href="https://mini-chatgpt-assignment.vercel.app/new">
                   aetherflow.documentationai.com
                 </a>
               </div>
