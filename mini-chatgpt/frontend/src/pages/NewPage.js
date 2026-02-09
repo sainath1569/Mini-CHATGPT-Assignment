@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from "react";
 import deploymentImage from "./Mini-Chatgpt.jpg";
 import {
-  Wifi,
-  WifiOff,
   CheckCircle,
   Clock,
-  GitBranch,
   ChevronDown,
   ChevronUp,
   Link,
@@ -92,7 +89,7 @@ const DeploymentRow = ({ item, expanded, onToggle }) => (
           <div className="text-gray-500">
             Deployed to:
             <a
-              href="#"
+              href="https://mini-chatgpt-assignment.vercel.app/new"
               className="text-white ml-1 underline underline-offset-2"
             >
               aetherflow.documentationai.com
